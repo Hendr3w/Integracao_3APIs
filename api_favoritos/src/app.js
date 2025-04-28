@@ -1,16 +1,15 @@
 const express = require('express');
-const cors = require('cors');
-const routes = require('./routes');
-const dotenv = require('dotenv');
-
-dotenv.config();
 const app = express();
+const routes = require('./routes');
 
-app.use(cors());
+// Middleware para permitir o parsing de JSON no corpo das requisições
 app.use(express.json());
-app.use('/', routes);
 
-const PORT = process.env.PORT || 5002;
-app.listen(PORT, () => {
-  console.log(`API Favoritos rodando na porta ${PORT}`);
+// Usando as rotas
+app.use('/api', routes);
+
+// Porta para a API
+const port = 5002;
+app.listen(port, () => {
+  console.log(`API Favoritos rodando na porta ${port}`);
 });

@@ -1,37 +1,37 @@
-const { getCache, setCache } = require('../cache');
-const { buscarMusicaNaApiMusicas } = require('../services/apiMusicasService');
-const { salvarFavorito, buscarFavoritos } = require('../models/favoritosModel');
+// src/controllers/favoritosController.js
 
-const adicionarFavorito = async (req, res) => {
-  const { user_id, musica_id } = req.body;
+const favoritos = []; // Um array para armazenar os favoritos (aqui você pode substituir por banco de dados ou outra coisa mais tarde)
 
-  // 1. Busca música na API de Músicas (com cache)
-  const musica = await buscarMusicaNaApiMusicas(musica_id);
-  if (!musica) return res.status(404).json({ erro: 'Música não encontrada' });
+// Função para adicionar músicas aos favoritos
+exports.adicionarFavoritos = (req, res) => {
+    const { user_id, musica_ids } = req.body;
 
-  // 2. Salva no PostgreSQL
-  await salvarFavorito(user_id, musica_id);
+    // Verificar se os dados necessários foram fornecidos
+    if (!user_id || !Array.isArray(musica_ids) || musica_ids.length === 0) {
+        return res.status(400).json({ mensagem: "É necessário fornecer um ID de usuário e um array de IDs de músicas." });
+    }
 
-  // 3. Invalida cache de favoritos do usuário
-  await setCache(`favoritos:${user_id}`, null);
+    // Adicionar os favoritos
+    musica_ids.forEach(musica_id => {
+        favoritos.push({ user_id, musica_id });
+    });
 
-  res.status(201).json({ mensagem: 'Música adicionada aos favoritos!' });
+    return res.status(200).json({
+        mensagem: "Músicas adicionadas aos favoritos!",
+        favoritos
+    });
 };
 
-const listarFavoritos = async (req, res) => {
-  const { user_id } = req.params;
+// Função para listar os favoritos de um usuário
+exports.listarFavoritos = (req, res) => {
+    const { user_id } = req.params;
 
-  // 1. Verifica cache
-  const cached = await getCache(`favoritos:${user_id}`);
-  if (cached) return res.json(JSON.parse(cached));
+    // Filtrar favoritos pelo user_id
+    const favoritosUsuario = favoritos.filter(fav => fav.user_id === parseInt(user_id));
 
-  // 2. Busca no banco de dados
-  const favoritos = await buscarFavoritos(user_id);
+    if (favoritosUsuario.length === 0) {
+        return res.status(404).json({ mensagem: "Nenhum favorito encontrado para este usuário." });
+    }
 
-  // 3. Atualiza cache (expira em 1h)
-  await setCache(`favoritos:${user_id}`, JSON.stringify(favoritos), 3600);
-
-  res.json(favoritos);
+    return res.status(200).json(favoritosUsuario);
 };
-
-module.exports = { adicionarFavorito, listarFavoritos };

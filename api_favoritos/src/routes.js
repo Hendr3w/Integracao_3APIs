@@ -1,11 +1,13 @@
+// src/routes.js
+
 const express = require('express');
 const router = express.Router();
-const { 
-  adicionarFavorito, 
-  listarFavoritos 
-} = require('./controllers/favoritosController');
+const favoritosController = require('./controllers/favoritosController');
 
-router.post('/favoritos', adicionarFavorito);
-router.get('/favoritos/:user_id', listarFavoritos);
+// Rota para adicionar músicas aos favoritos
+router.post('/favoritos', favoritosController.adicionarFavoritos);
+
+// Rota para listar os favoritos de um usuário
+router.get('/favoritos/:user_id', favoritosController.listarFavoritos);
 
 module.exports = router;
