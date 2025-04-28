@@ -1,0 +1,23 @@
+services:
+  api-favoritos:
+    build: .
+    ports:
+      - "5002:5002"
+    volumes:
+      - ./database.sqlite:/app/database.sqlite
+    environment:
+      - DB_PATH=/app/database.sqlite
+      - REDIS_URL=redis://redis
+    depends_on:
+      redis:
+        condition: service_healthy
+
+  redis:
+    image: redis:alpine
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 1s
+      timeout: 3s
+      retries: 30
